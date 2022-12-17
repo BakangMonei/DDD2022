@@ -1,0 +1,265 @@
+-- a)	Develop the database for Dabula University using Oracle DBMS that satisfy the following requirements:
+---------------------------------------------------------------------------------------------------------------
+-- i)	Scripts for all the tables and the insert statements.	[14]
+-- Creating Student table
+Create Table Student(
+StuID char(30),
+fName varchar(30),
+surname varchar (30),
+Gender varchar(6),
+phoneNumber number(8),
+email varchar(30),
+age number,
+Primary Key(StuID)
+);
+
+insert into Student Values('cis20-001', 'Neiza', 'WaDi', 'Male', 71234567, 'neiza@gmail.com', 20);
+insert into Student Values('cis20-002', 'Me', 'Lady', 'Female', 76453526, 'mad@gmail.com', 19);
+insert into Student Values('cis20-003', 'Kago', 'Katlego', 'Female', 77483930, 'kk@gmail.com', 19);
+insert into Student Values('cis20-004', 'test', 'tesing', 'Female', 79837457, 'lame@gmail.com', 20);
+insert into Student Values('cis20-005', 'Lee', 'Skizo', 'Male', 79876543, 'lee@gmail.com', 23);
+---------------------------------------------------------------------------------------------------------------
+
+-- Creating ExecutiveDean Table
+Create Table ExecutiveDean(
+execID char(30),
+fName varchar(30),
+surname varchar (30),
+Gender varchar(6),
+phoneNumber number(8),
+email varchar(30),
+Primary Key(execID)
+);
+insert into ExecutiveDean Values('admin001', 'Big', 'Boss', 'Male', 7777777, 'bigboss@gmail.com');
+---------------------------------------------------------------------------------------------------------------
+
+-- Creating Lecture Table
+Create Table Lecture(
+LecID char(30),
+fName varchar(30),
+Gender varchar(6),
+phoneNumber number(8),
+email varchar(30),
+Primary Key(LecID)
+);
+
+insert into Lecture Values('Lec001', 'Kentsenao', 'Male', 75463522, 'kb@gmail.com');
+insert into Lecture Values('Lec002', 'Tebatso', 'Male', 72353849, 'tna@gmail.com');
+insert into Lecture Values('Lec003', 'Botlhe', 'Female', 75466574, 'bm@gmail.com');
+insert into Lecture Values('Lec004', 'Verma', 'Female', 75673522, 'verma@gmail.com');
+insert into Lecture Values('Lec005', 'Melissa', 'Female', 71230987, 'mel@gmail.com');
+insert into Lecture Values('Lec006', 'Zachariah', 'Female', 75421234, 'zac@gmail.com');
+---------------------------------------------------------------------------------------------------------------
+
+-- Creating Faculty Table
+Create Table Faculty(
+FacID char(30),
+fName varchar(30),
+Primary Key(FacID)
+);
+insert into Faculty Values('Fac1', 'Computing');
+insert into Faculty Values('Fac2', 'Engineering');
+insert into Faculty Values('Fac3', 'Humanities');
+---------------------------------------------------------------------------------------------------------------
+
+-- All courses
+Create Table AllCourses(
+courseID char(30),
+FacID char(30),
+fName varchar(30),
+Primary Key (courseID),
+Foreign Key(facID) references Faculty(facID)
+);
+
+insert into AllCourses Values('H001', 'Fac3','social work');
+insert into AllCourses Values('H002', 'Fac3','Psychology');
+insert into AllCourses Values('H003', 'Fac3','philosophy');
+insert into AllCourses Values('E001', 'Fac2','Electronics');
+insert into AllCourses Values('E002', 'Fac2','Architecture');
+insert into AllCourses Values('E003', 'Fac2','Quantity-surveying');
+insert into AllCourses Values('E004', 'Fac2','Bio-chemistry');
+insert into AllCourses Values('C001', 'Fac1','Computer science');
+insert into AllCourses Values('C002', 'Fac1','Information Systems');
+insert into AllCourses Values('C003', 'Fac1','Informatics');
+---------------------------------------------------------------------------------------------------------------
+
+-- Computing Table
+Create Table Computing(
+courseID char(30),
+StuID char(30),
+Primary Key(StuID),
+Foreign Key(courseID) references AllCourses(courseID),
+Foreign Key(StuID) references Student(StuID)
+);
+
+Insert into Computing Values('C001', 'cis20-001');
+
+-- Humanities Table
+Create Table Humanities(
+courseID char(30),
+StuID char(30),
+Primary Key(StuID),
+Foreign Key(courseID) references AllCourses(courseID),
+Foreign Key(StuID) references Student(StuID)
+);
+
+Insert into Humanities Values('H001', 'cis20-002');
+
+-- Engineering Table
+Create Table Engineering(
+courseID char(30),
+StuID char(30),
+Primary Key(StuID),
+Foreign Key(courseID) references AllCourses(courseID),
+Foreign Key(StuID) references Student(StuID)
+);
+
+Insert into Engineering Values('E001', 'cis20-003');
+---------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------
+
+
+-- Joint Tables
+-- Creating StuCourse [Student + Course]
+Create Table StuCourse(
+StuID char(30),
+courseID char(30),
+
+Foreign key(StuID) references Student(StuID),
+Foreign key(courseID) references AllCourses(courseID)
+);
+
+insert into StuCourse Values('cis20-001', 'H001');
+insert into StuCourse Values('cis20-002', 'E002');
+insert into StuCourse Values('cis20-003', 'C002');
+insert into StuCourse Values('cis20-004', 'E003');
+insert into StuCourse Values('cis20-005', 'H002');
+---------------------------------------------------------------------------------------------------------------
+-- Creating LecProgram
+Create Table LecCourse(
+LecID char(30),
+courseID char(30),
+courseTaken number,
+Status number(5),
+Foreign key(LecID) references Lecture(LecID),
+Foreign key(courseID) references AllCourses(courseID)
+);
+
+insert into LecCourse Values('Lec001', 'H001', 4, 4);
+insert into LecCourse Values('Lec001', 'H002',  4, 4);
+
+--insert into AllCourses Values('H001', 'Fac3','social work');
+--insert into AllCourses Values('H002', 'Fac3','Psychology');
+--insert into AllCourses Values('H003', 'Fac3','philosophy');
+---------------------------------------------------------------------------------------------------------------
+
+-- ii. A student can only be accepted if they are 18 years old and above
+Alter Table Student add constraint chkAge CHECK (age>=18);
+---------------------------------------------------------------------------------------------------------------
+
+-- iii. Class capacity is 40
+Create or Replace Trigger classCapacity
+Before Insert
+On Student
+Referencing New As new Old as old
+For each row
+Declare
+Total_Students Number;
+Cursor my_count is Select Count(*) from Student;
+Begin
+Open my_count;
+fetch my_count Into Total_Students;
+    IF (Total_Students = 40) THEN
+    Begin 
+        Raise_application_error(-20003, 'Lots of Students');
+        Rollback;
+    End;
+    End If;
+close my_count;
+End;
+---------------------------------------------------------------------------------------------------------------
+
+-- iv)	As much as 60 % of the students can be males per program. (Implement a trigger)
+Create Or Replace Trigger maleInClass
+Before Insert
+On Student
+Referencing New As new Old as old
+For Each Row
+Declare
+Total_males Number;
+Cursor my_count Is Select Count(*) From Student;
+Begin
+Open my_count;
+fetch my_count Into Total_males;
+    If (Total_males = 60/100*5) Then
+    Begin
+        Raise_application_error(-20003,'Num Of Males');
+        Rollback;
+    End;
+    End if;
+close my_count;
+End;
+--------------------------------------------------------------------------------------------
+-- v)	A lecturer can participate in at most two programs. (Implement a trigger)
+Create Or Replace Trigger lectureTwoProgrammes
+Before Insert
+On LecCourse
+Referencing New As new Old as old
+For Each Row
+Declare
+Total_programcode Number;
+Cursor my_count Is Select Count(*) from LecCourse;
+Begin
+open my_count;
+fetch my_count into Total_programcode;
+    If (Total_programcode >= 2) THEN
+    Begin
+        Raise_application_error(-20003,'Lectures with 2 Courses');
+        Rollback;
+    End;
+    End if;
+close my_count;
+End;
+
+------------------------------------------------------------------------------------
+-- vi)	Students can only be accepted to the offered programs 
+
+
+-----------------------------------******************************************-------------------------------------------------
+-- b)	Draft SQL statements to do the following
+
+------------------------------------------------------------------------------------
+-- i)	List the programs offered by a department. Your script should prompt the user to enter the name of the degree program. 
+
+
+------------------------------------------------------------------------------------
+-- ii)	Show the names of lecturers who participate in only one program. 
+Select LecID from LecCourse where LecCourse.Status =  '1';
+
+------------------------------------------------------------------------------------
+-- iii)	show the names of female students who are teenagers and the programs they are taking
+Select Student.fName, Student.surname, Student.Gender, StuCourse.courseID from Student join StuCourse On StuCourse.StuID = Student.StuID where age<= 19 Gender = 'Female';
+
+------------------------------------------------------------------------------------
+-- iv)	show the names of lecturers who are not teaching
+Select LecID from LecCourse where LecCourse.Status =  '0';
+
+------------------------------------------------------------------------------------
+-- Registration Table
+Create Table Registration(
+CourseID char(30),
+StuID char(30),
+NumberOfModules number,
+Sponsor varchar(30),
+Tuition varchar(30),
+Foreign key(StuID) references Student(StuID),
+Foreign key(courseID) references AllCourses(courseID)
+);
+-- v)	To create a stored procedure for registering for modules 
+Create Or Replace Procedure AllModules(courseID varchar, StuID varchar, NumberOfModules Number, Sponsor varchar, tuition varchar)
+Is
+Begin
+    Insert Into Registration Values (courseID, StuID, NumberOfModules, Sponsor, Tuition)
+End;
